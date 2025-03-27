@@ -12,7 +12,7 @@ interface ChallengesContextType {
     updateChallenge: (challenge: Challenge) => void
     deleteChallenge: (id: string) => void
     addCheckIn: (challengeId: string, checkIn: CheckIn) => void
-    updateProgress: (challengeId: string) => void
+    updateProgress: (challengeId: string, progress: number) => void
 }
 
 const ChallengesContext = createContext<ChallengesContextType | undefined>(undefined)
@@ -77,7 +77,9 @@ export function ChallengesProvider({children}: { children: React.ReactNode }) {
     }
 
     const updateChallenge = (challenge: Challenge) => {
-        // Find the existing challenge to preserve check-ins
+        console.log("updateChallenge called with:", challenge) // Debug log
+
+        // Find the existing challenge to preserve check-ins if they're not in the updated challenge
         const existingChallenge = challenges.find((c) => c.id === challenge.id)
 
         if (!existingChallenge) {
@@ -86,17 +88,34 @@ export function ChallengesProvider({children}: { children: React.ReactNode }) {
             return
         }
 
-        // Preserve existing check-ins
+        // Preserve existing check-ins if not provided in the update
         const updatedChallenge = {
             ...challenge,
-            checkIns: existingChallenge.checkIns,
+            checkIns: challenge.checkIns || existingChallenge.checkIns,
         }
 
-        // Recalculate progress and update milestones
-        const finalChallenge = calculateProgressAndMilestones(updatedChallenge)
+        // Create the final challenge object with the correct progress
+        const finalChallenge = {
+            ...updatedChallenge,
+            // Ensure progress is a number and use the provided value
+            progress:
+                typeof updatedChallenge.progress === "number" ? updatedChallenge.progress : calculateProgress(updatedChallenge),
+            // Update milestones based on the final progress value
+            milestones: updateMilestones(
+                updatedChallenge,
+                typeof updatedChallenge.progress === "number" ? updatedChallenge.progress : calculateProgress(updatedChallenge),
+            ),
+        }
+
+        console.log("Final challenge to update:", finalChallenge) // Debug log
 
         // Update both the state and the data module
-        setChallenges((prev) => prev.map((c) => (c.id === challenge.id ? finalChallenge : c)))
+        setChallenges((prev) => {
+            const updated = prev.map((c) => (c.id === challenge.id ? finalChallenge : c))
+            console.log("Updated challenges state:", updated) // Debug log
+            return updated
+        })
+
         updateChallengeInData(finalChallenge)
     }
 
@@ -106,11 +125,15 @@ export function ChallengesProvider({children}: { children: React.ReactNode }) {
         deleteChallengeFromData(id)
     }
 
-    const updateProgress = (challengeId: string) => {
+    const updateProgress = (challengeId: string, progress: number) => {
         setChallenges((prev) =>
             prev.map((challenge) => {
                 if (challenge.id === challengeId) {
-                    const updatedChallenge = calculateProgressAndMilestones(challenge)
+                    const updatedChallenge = {
+                        ...challenge,
+                        progress,
+                        milestones: updateMilestones(challenge, progress),
+                    }
                     updateChallengeInData(updatedChallenge)
                     return updatedChallenge
                 }

@@ -2,19 +2,21 @@
 
 import {notFound, useRouter} from "next/navigation"
 import Link from "next/link"
+import {useState} from "react"
 import {Button} from "@/components/ui/button"
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card"
 import {Progress} from "@/components/ui/progress"
 import {Badge} from "@/components/ui/badge"
-import {ArrowLeft, Calendar, Trophy, Edit} from "lucide-react"
+import {ArrowLeft, Calendar, Trophy, Edit, BarChart} from "lucide-react"
 import {formatDate} from "@/lib/utils"
 import CheckInForm from "@/components/check-in-form"
 import CheckInHistory from "@/components/check-in-history"
 import Navbar from "@/components/navbar"
 import {useChallenges} from "@/hooks/use-challenges"
-import {useEffect, useState} from "react"
+import {useEffect} from "react"
 import {getChallengeById} from "@/lib/data"
 import type {Challenge} from "@/lib/types"
+import BulkUpdateDialog from "@/components/bulk-update-dialog"
 
 interface ChallengeDetailPageProps {
     params: {
@@ -26,13 +28,16 @@ export default function ChallengeDetailPage({params}: ChallengeDetailPageProps) 
     const {challenges} = useChallenges()
     const [challenge, setChallenge] = useState<Challenge | null>(null)
     const [loading, setLoading] = useState(true)
+    const [bulkUpdateOpen, setBulkUpdateOpen] = useState(false)
     const router = useRouter()
 
+    // Update the challenge whenever it changes in the context
     useEffect(() => {
         // Try to find the challenge in the context first
         const contextChallenge = challenges.find((c) => c.id === params.id)
 
         if (contextChallenge) {
+            console.log("Challenge updated from context:", contextChallenge) // Debug log
             setChallenge(contextChallenge)
             setLoading(false)
             return
@@ -71,6 +76,10 @@ export default function ChallengeDetailPage({params}: ChallengeDetailPageProps) 
         notFound()
     }
 
+    // Group milestones by achievement status
+    const achievedMilestones = challenge.milestones.filter((m) => m.achieved)
+    const upcomingMilestones = challenge.milestones.filter((m) => !m.achieved)
+
     return (
         <>
             <Navbar/>
@@ -90,12 +99,18 @@ export default function ChallengeDetailPage({params}: ChallengeDetailPageProps) 
                             <CardHeader className="pb-2">
                                 <div className="flex justify-between items-start">
                                     <CardTitle className="text-2xl">{challenge.title}</CardTitle>
-                                    <Link href={`/edit/${challenge.id}`}>
-                                        <Button variant="outline" size="sm">
-                                            <Edit className="h-4 w-4 mr-1"/>
-                                            Edit
+                                    <div className="flex gap-2">
+                                        <Button variant="outline" size="sm" onClick={() => setBulkUpdateOpen(true)}>
+                                            <BarChart className="h-4 w-4 mr-1"/>
+                                            Update Progress
                                         </Button>
-                                    </Link>
+                                        <Link href={`/edit/${challenge.id}`}>
+                                            <Button variant="outline" size="sm">
+                                                <Edit className="h-4 w-4 mr-1"/>
+                                                Edit
+                                            </Button>
+                                        </Link>
+                                    </div>
                                 </div>
                                 <div className="flex items-center gap-2 mt-1">
                                     <Calendar className="h-4 w-4 text-muted-foreground"/>
@@ -117,18 +132,42 @@ export default function ChallengeDetailPage({params}: ChallengeDetailPageProps) 
 
                                 <div className="mb-6">
                                     <h3 className="font-medium mb-3">Milestones</h3>
-                                    <div className="flex flex-wrap gap-2">
-                                        {challenge.milestones.map((milestone) => (
-                                            <Badge
-                                                key={milestone.id}
-                                                variant={milestone.achieved ? "default" : "outline"}
-                                                className="flex items-center gap-1 text-sm py-1.5 px-2.5"
-                                            >
-                                                <Trophy className="h-3.5 w-3.5"/>
-                                                {milestone.title} ({milestone.threshold}%)
-                                            </Badge>
-                                        ))}
-                                    </div>
+
+                                    {achievedMilestones.length > 0 && (
+                                        <div className="mb-3">
+                                            <h4 className="text-sm text-muted-foreground mb-2">Achieved</h4>
+                                            <div className="flex flex-wrap gap-2">
+                                                {achievedMilestones.map((milestone) => (
+                                                    <Badge
+                                                        key={milestone.id}
+                                                        variant="default"
+                                                        className="flex items-center gap-1 text-sm py-1.5 px-2.5"
+                                                    >
+                                                        <Trophy className="h-3.5 w-3.5"/>
+                                                        {milestone.title} ({milestone.threshold}%)
+                                                    </Badge>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {upcomingMilestones.length > 0 && (
+                                        <div>
+                                            <h4 className="text-sm text-muted-foreground mb-2">Upcoming</h4>
+                                            <div className="flex flex-wrap gap-2">
+                                                {upcomingMilestones.map((milestone) => (
+                                                    <Badge
+                                                        key={milestone.id}
+                                                        variant="outline"
+                                                        className="flex items-center gap-1 text-sm py-1.5 px-2.5"
+                                                    >
+                                                        <Trophy className="h-3.5 w-3.5"/>
+                                                        {milestone.title} ({milestone.threshold}%)
+                                                    </Badge>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <CheckInForm challengeId={challenge.id}/>
@@ -147,6 +186,9 @@ export default function ChallengeDetailPage({params}: ChallengeDetailPageProps) 
                         </Card>
                     </div>
                 </div>
+
+                {challenge &&
+                    <BulkUpdateDialog open={bulkUpdateOpen} onOpenChange={setBulkUpdateOpen} challenge={challenge}/>}
             </main>
         </>
     )

@@ -29,6 +29,10 @@ export default function ChallengeDetailContent({challenge: initialChallenge}: Ch
         }
     }, [challenges, initialChallenge.id])
 
+    // Group milestones by achievement status
+    const achievedMilestones = challenge.milestones.filter((m) => m.achieved)
+    const upcomingMilestones = challenge.milestones.filter((m) => !m.achieved)
+
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
@@ -63,18 +67,42 @@ export default function ChallengeDetailContent({challenge: initialChallenge}: Ch
 
                         <div className="mb-6">
                             <h3 className="font-medium mb-3">Milestones</h3>
-                            <div className="flex flex-wrap gap-2">
-                                {challenge.milestones.map((milestone) => (
-                                    <Badge
-                                        key={milestone.id}
-                                        variant={milestone.achieved ? "default" : "outline"}
-                                        className="flex items-center gap-1 text-sm py-1.5 px-2.5"
-                                    >
-                                        <Trophy className="h-3.5 w-3.5"/>
-                                        {milestone.title} ({milestone.threshold}%)
-                                    </Badge>
-                                ))}
-                            </div>
+
+                            {achievedMilestones.length > 0 && (
+                                <div className="mb-3">
+                                    <h4 className="text-sm text-muted-foreground mb-2">Achieved</h4>
+                                    <div className="flex flex-wrap gap-2">
+                                        {achievedMilestones.map((milestone) => (
+                                            <Badge
+                                                key={milestone.id}
+                                                variant="default"
+                                                className="flex items-center gap-1 text-sm py-1.5 px-2.5"
+                                            >
+                                                <Trophy className="h-3.5 w-3.5"/>
+                                                {milestone.title} ({milestone.threshold}%)
+                                            </Badge>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {upcomingMilestones.length > 0 && (
+                                <div>
+                                    <h4 className="text-sm text-muted-foreground mb-2">Upcoming</h4>
+                                    <div className="flex flex-wrap gap-2">
+                                        {upcomingMilestones.map((milestone) => (
+                                            <Badge
+                                                key={milestone.id}
+                                                variant="outline"
+                                                className="flex items-center gap-1 text-sm py-1.5 px-2.5"
+                                            >
+                                                <Trophy className="h-3.5 w-3.5"/>
+                                                {milestone.title} ({milestone.threshold}%)
+                                            </Badge>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         <CheckInForm challengeId={challenge.id}/>

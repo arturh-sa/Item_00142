@@ -523,6 +523,7 @@ export function addChallengeToData(challenge: Challenge): void {
 
 // Update a challenge
 export function updateChallengeInData(challenge: Challenge): void {
+    console.log("Updating challenge in data store:", challenge) // Debug log
     challenges = challenges.map((c) => (c.id === challenge.id ? challenge : c))
 }
 

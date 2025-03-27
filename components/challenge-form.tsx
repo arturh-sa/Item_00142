@@ -45,6 +45,8 @@ interface ChallengeFormProps {
 
 export default function ChallengeForm({challenge}: ChallengeFormProps) {
     const [isSubmitting, setIsSubmitting] = useState(false)
+    const [startDateOpen, setStartDateOpen] = useState(false)
+    const [endDateOpen, setEndDateOpen] = useState(false)
     const router = useRouter()
     const {toast} = useToast()
     const {addChallenge, updateChallenge} = useChallenges()
@@ -189,7 +191,7 @@ export default function ChallengeForm({challenge}: ChallengeFormProps) {
                         render={({field}) => (
                             <FormItem className="flex flex-col">
                                 <FormLabel>Start Date</FormLabel>
-                                <Popover>
+                                <Popover open={startDateOpen} onOpenChange={setStartDateOpen} modal={true}>
                                     <PopoverTrigger asChild>
                                         <FormControl>
                                             <Button
@@ -202,8 +204,15 @@ export default function ChallengeForm({challenge}: ChallengeFormProps) {
                                         </FormControl>
                                     </PopoverTrigger>
                                     <PopoverContent className="w-auto p-0" align="start">
-                                        <Calendar mode="single" selected={field.value} onSelect={field.onChange}
-                                                  initialFocus/>
+                                        <Calendar
+                                            mode="single"
+                                            selected={field.value}
+                                            onSelect={(date) => {
+                                                field.onChange(date)
+                                                setStartDateOpen(false)
+                                            }}
+                                            initialFocus
+                                        />
                                     </PopoverContent>
                                 </Popover>
                                 <FormMessage/>
@@ -217,7 +226,7 @@ export default function ChallengeForm({challenge}: ChallengeFormProps) {
                         render={({field}) => (
                             <FormItem className="flex flex-col">
                                 <FormLabel>End Date</FormLabel>
-                                <Popover>
+                                <Popover open={endDateOpen} onOpenChange={setEndDateOpen} modal={true}>
                                     <PopoverTrigger asChild>
                                         <FormControl>
                                             <Button
@@ -230,8 +239,15 @@ export default function ChallengeForm({challenge}: ChallengeFormProps) {
                                         </FormControl>
                                     </PopoverTrigger>
                                     <PopoverContent className="w-auto p-0" align="start">
-                                        <Calendar mode="single" selected={field.value} onSelect={field.onChange}
-                                                  initialFocus/>
+                                        <Calendar
+                                            mode="single"
+                                            selected={field.value}
+                                            onSelect={(date) => {
+                                                field.onChange(date)
+                                                setEndDateOpen(false)
+                                            }}
+                                            initialFocus
+                                        />
                                     </PopoverContent>
                                 </Popover>
                                 <FormMessage/>
