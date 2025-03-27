@@ -37,7 +37,6 @@ export default function ChallengeDetailPage({params}: ChallengeDetailPageProps) 
         const contextChallenge = challenges.find((c) => c.id === params.id)
 
         if (contextChallenge) {
-            console.log("Challenge updated from context:", contextChallenge) // Debug log
             setChallenge(contextChallenge)
             setLoading(false)
             return
@@ -97,23 +96,26 @@ export default function ChallengeDetailPage({params}: ChallengeDetailPageProps) 
                     <div className="lg:col-span-2">
                         <Card>
                             <CardHeader className="pb-2">
-                                <div className="flex justify-between items-start">
-                                    <CardTitle className="text-2xl">{challenge.title}</CardTitle>
-                                    <div className="flex gap-2">
-                                        <Button variant="outline" size="sm" onClick={() => setBulkUpdateOpen(true)}>
-                                            <BarChart className="h-4 w-4 mr-1"/>
-                                            Update Progress
+                                {/* Improved header layout for mobile */}
+                                <div
+                                    className="flex flex-col space-y-4 sm:flex-row sm:justify-between sm:items-start sm:space-y-0">
+                                    <CardTitle className="text-2xl break-words pr-2">{challenge.title}</CardTitle>
+                                    <div className="flex flex-wrap gap-2">
+                                        <Button variant="outline" size="sm" onClick={() => setBulkUpdateOpen(true)}
+                                                className="h-9 px-3">
+                                            <BarChart className="h-4 w-4 mr-1.5"/>
+                                            <span>Update Progress</span>
                                         </Button>
                                         <Link href={`/edit/${challenge.id}`}>
-                                            <Button variant="outline" size="sm">
-                                                <Edit className="h-4 w-4 mr-1"/>
-                                                Edit
+                                            <Button variant="outline" size="sm" className="h-9 px-3">
+                                                <Edit className="h-4 w-4 mr-1.5"/>
+                                                <span>Edit</span>
                                             </Button>
                                         </Link>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2 mt-1">
-                                    <Calendar className="h-4 w-4 text-muted-foreground"/>
+                                    <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0"/>
                                     <span className="text-sm text-muted-foreground">
                     {formatDate(challenge.startDate)} - {formatDate(challenge.endDate)}
                   </span>
